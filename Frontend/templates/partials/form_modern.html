@@ -1,0 +1,28 @@
+{% comment %}
+  Ortak form alanlari: form, opsiyonel gonder_buton_metni
+{% endcomment %}
+{% if form.non_field_errors %}
+<div class="form-hata-kutu md:col-span-2">{{ form.non_field_errors }}</div>
+{% endif %}
+{% for alan in form %}
+<div class="form-grup {% if alan.field.widget.input_type == 'checkbox' %}form-grup-yatay{% endif %} {% if alan.field.widget.attrs.rows or alan.name == 'hasta_id' or alan.name == 'hasta' or alan.name == 'doktor' %}md:col-span-2{% endif %}">
+    {% if alan.field.widget.input_type == 'checkbox' %}
+        {{ alan }}
+        <label class="form-etiket" for="{{ alan.id_for_label }}">{{ alan.label }}</label>
+    {% else %}
+        <label class="form-etiket" for="{{ alan.id_for_label }}">{{ alan.label }}</label>
+        {{ alan }}
+    {% endif %}
+    {% if alan.errors %}
+    <p class="form-hata w-full">{{ alan.errors.0 }}</p>
+    {% endif %}
+    {% if alan.help_text %}
+    <p class="text-slate-500 text-xs w-full">{{ alan.help_text }}</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% if gonder_buton_metni %}
+<div class="md:col-span-2 pt-2">
+    <button type="submit" class="btn btn-birincil btn-genis">{{ gonder_buton_metni }}</button>
+</div>
+{% endif %}

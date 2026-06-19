@@ -1,0 +1,92 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Yapay Zeka Tahmini{% endblock %}
+
+{% block icerik %}
+<div class="max-w-5xl mx-auto">
+    <header class="sayfa-baslik-wrap">
+        <h1 class="sayfa-baslik-ana serif-baslik vurgu">Kalp Yetmezligi Tahmini</h1>
+        <p class="sayfa-baslik-alt">On iki klinik gosterge — bes model + toplu oy birlesimi</p>
+    </header>
+
+    <div class="yuzey p-8 md:p-10 kart-etkilesim">
+        <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            {% csrf_token %}
+            {% include "partials/form_modern.html" with form=tahmin_formu %}
+            <div class="md:col-span-2 pt-2 flex flex-col sm:flex-row gap-4">
+                <button type="submit" name="eylem" value="tahmin_et" class="btn btn-birincil btn-genis">Tahmini Hesapla</button>
+                <button type="submit" name="eylem" value="kaydet_ve_goruntule" class="btn btn-ikincil btn-genis">&#43; Run Prediction &amp; Save</button>
+            </div>
+        </form>
+    </div>
+
+    {% if tahmin_sonucu and tahmin_sunumu %}
+    <section class="yuzey p-8 md:p-10 mt-8 kart-etkilesim border-t-2 border-t-cyan-500/30">
+        <h2 class="serif-baslik text-2xl vurgu mb-2">Genel Sonuc</h2>
+        <p class="text-3xl md:text-4xl font-bold mb-6 {% if tahmin_sonucu.toplu_tahmin %}text-red-300{% else %}text-emerald-300{% endif %}">
+            {{ tahmin_sunumu.toplu }}
+        </p>
+        <h3 class="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-4">Model Bazli Sonuclar</h3>
+        <div class="tahmin-ozet max-w-xl">
+            <div class="tahmin-ozet-satir"><span class="text-slate-400">Karar Agaci</span><span class="font-semibold {% if tahmin_sonucu.karar_agaci_tahmini %}text-red-300{% else %}text-emerald-300{% endif %}">{{ tahmin_sunumu.karar_agaci }}</span></div>
+            <div class="tahmin-ozet-satir"><span class="text-slate-400">KNN</span><span class="font-semibold {% if tahmin_sonucu.knn_tahmini %}text-red-300{% else %}text-emerald-300{% endif %}">{{ tahmin_sunumu.knn }}</span></div>
+            <div class="tahmin-ozet-satir"><span class="text-slate-400">Naive Bayes</span><span class="font-semibold {% if tahmin_sonucu.naive_bayes_tahmini %}text-red-300{% else %}text-emerald-300{% endif %}">{{ tahmin_sunumu.naive_bayes }}</span></div>
+            <div class="tahmin-ozet-satir"><span class="text-slate-400">Rastgele Orman</span><span class="font-semibold {% if tahmin_sonucu.rastgele_orman_tahmini %}text-red-300{% else %}text-emerald-300{% endif %}">{{ tahmin_sunumu.rastgele_orman }}</span></div>
+            <div class="tahmin-ozet-satir"><span class="text-slate-400">Lojistik Regresyon</span><span class="font-semibold {% if tahmin_sonucu.lojistik_regresyon_tahmini %}text-red-300{% else %}text-emerald-300{% endif %}">{{ tahmin_sunumu.lojistik_regresyon }}</span></div>
+            <div class="tahmin-ozet-satir pt-2 border-t border-white/10">
+                <span class="text-slate-200 font-semibold">Toplu Tahmin (Oylama)</span>
+                <span class="text-xl font-bold {% if tahmin_sonucu.toplu_tahmin %}text-red-300{% else %}text-emerald-300{% endif %}">{{ tahmin_sunumu.toplu }}</span>
+            </div>
+            <div class="tahmin-ozet-satir">
+                <span class="text-slate-400">Ortalama Olasilik (pozitif sinif)</span>
+                <span class="font-mono text-cyan-200">{{ tahmin_sonucu.olasilik|floatformat:3 }}</span>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    var hastaSelect = document.getElementById("id_hasta_id");
+    if (!hastaSelect) return;
+
+    var alanHaritasi = {
+        "id_yas": "yas",
+        "id_anemi": "anemi",
+        "id_kreatinin_fosfokinaz": "kreatinin_fosfokinaz",
+        "id_diyabet": "diyabet",
+        "id_ejeksiyon_fraksiyonu": "ejeksiyon_fraksiyonu",
+        "id_yuksek_tansiyon": "yuksek_tansiyon",
+        "id_trombosit": "trombosit",
+        "id_serum_kreatinin": "serum_kreatinin",
+        "id_serum_sodyum": "serum_sodyum",
+        "id_cinsiyet_erkek": "cinsiyet_erkek",
+        "id_sigara": "sigara",
+        "id_takip_suresi": "takip_suresi",
+    };
+
+    hastaSelect.addEventListener("change", function() {
+        var hastaId = this.value;
+        if (!hastaId) return;
+
+        fetch("/api/hasta/" + hastaId + "/son-kayit/")
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.bulundu) return;
+                var veri = data.veri;
+                for (var htmlId in alanHaritasi) {
+                    var alan = document.getElementById(htmlId);
+                    var anahtar = alanHaritasi[htmlId];
+                    if (alan && veri[anahtar] !== undefined) {
+                        alan.value = veri[anahtar];
+                    }
+                }
+            })
+            .catch(function() {});
+    });
+})();
+</script>
+{% endblock %}

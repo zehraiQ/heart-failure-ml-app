@@ -1,0 +1,18 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Randevu Olustur{% endblock %}
+
+{% block icerik %}
+<div class="max-w-3xl mx-auto">
+    <header class="sayfa-baslik-wrap">
+        <h1 class="sayfa-baslik-ana serif-baslik vurgu">Yeni Randevu</h1>
+        <p class="sayfa-baslik-alt">Hasta, doktor ve tarih/saat secimi</p>
+    </header>
+    <div class="yuzey p-8 md:p-10 kart-etkilesim">
+        <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            {% csrf_token %}
+            {% include "partials/form_modern.html" with form=randevu_formu gonder_buton_metni="Randevu Kaydet" %}
+        </form>
+    </div>
+</div>
+{% endblock %}

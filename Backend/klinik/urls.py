@@ -1,0 +1,41 @@
+from django.urls import path
+
+from .views import (
+    ana_sayfa_view,
+    doktor_duzenle_view,
+    doktor_ekle_view,
+    doktor_listesi_view,
+    doktor_sil_view,
+    gecmis_tahminler_view,
+    hasta_duzenle_view,
+    hasta_ekle_view,
+    hasta_gecmis_json,
+    hasta_listesi_view,
+    hasta_profil_view,
+    hasta_sil_view,
+    hasta_son_kayit_json,
+    randevu_iptal_view,
+    randevu_listesi_view,
+    randevu_olustur_view,
+    tahmin_yap_view,
+)
+
+urlpatterns = [
+    path("", ana_sayfa_view, name="ana_sayfa"),
+    path("hastalar/ekle/", hasta_ekle_view, name="hasta_ekle"),
+    path("hastalar/<int:hasta_id>/duzenle/", hasta_duzenle_view, name="hasta_duzenle"),
+    path("hastalar/<int:hasta_id>/sil/", hasta_sil_view, name="hasta_sil"),
+    path("hastalar/<int:hasta_id>/profil/", hasta_profil_view, name="hasta_profil"),
+    path("hastalar/", hasta_listesi_view, name="hasta_listesi"),
+    path("doktorlar/ekle/", doktor_ekle_view, name="doktor_ekle"),
+    path("doktorlar/<int:doktor_id>/duzenle/", doktor_duzenle_view, name="doktor_duzenle"),
+    path("doktorlar/<int:doktor_id>/sil/", doktor_sil_view, name="doktor_sil"),
+    path("doktorlar/", doktor_listesi_view, name="doktor_listesi"),
+    path("randevu/olustur/", randevu_olustur_view, name="randevu_olustur"),
+    path("randevular/", randevu_listesi_view, name="randevu_listesi"),
+    path("randevu/<int:randevu_id>/iptal/", randevu_iptal_view, name="randevu_iptal"),
+    path("tahmin/yap/", tahmin_yap_view, name="tahmin_yap"),
+    path("tahmin/gecmis/", gecmis_tahminler_view, name="gecmis_tahminler"),
+    path("api/hasta/<int:hasta_id>/son-kayit/", hasta_son_kayit_json, name="hasta_son_kayit_json"),
+    path("api/hasta/<int:hasta_id>/gecmis/", hasta_gecmis_json, name="hasta_gecmis_json"),
+]

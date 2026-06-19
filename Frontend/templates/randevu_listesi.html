@@ -1,0 +1,53 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Randevu Listesi{% endblock %}
+
+{% block icerik %}
+<header class="sayfa-baslik-wrap flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+    <div>
+        <h1 class="sayfa-baslik-ana serif-baslik vurgu">Randevu Listesi</h1>
+        <p class="sayfa-baslik-alt">Planlanan ve guncellenen randevular</p>
+    </div>
+    <a href="{% url 'randevu_olustur' %}" class="btn btn-birincil shrink-0">Randevu Olustur</a>
+</header>
+
+<div class="yuzey overflow-hidden kart-etkilesim">
+    <div class="tablo-sarmal">
+        <table class="tablo-pro">
+            <thead>
+                <tr>
+                    <th>Hasta</th>
+                    <th>Doktor</th>
+                    <th>Tarih</th>
+                    <th>Durum</th>
+                    <th>Islem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for randevu in randevular %}
+                <tr>
+                    <td class="font-medium text-slate-100">{{ randevu.hasta.ad_soyad }}</td>
+                    <td>{{ randevu.doktor.ad_soyad }}</td>
+                    <td class="text-slate-400 text-xs">{{ randevu.randevu_tarihi }}</td>
+                    <td>{{ randevu.get_durum_display }}</td>
+                    <td>
+                        {% if randevu.durum != "iptal" %}
+                        <form method="post" action="{% url 'randevu_iptal' randevu.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-tehlike btn-kucuk">Iptal Et</button>
+                        </form>
+                        {% else %}
+                        <span class="text-slate-500 text-sm">Iptal edildi</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-12 text-slate-500">Randevu bulunmuyor.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

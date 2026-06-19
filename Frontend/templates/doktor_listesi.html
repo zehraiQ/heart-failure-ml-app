@@ -1,0 +1,55 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Doktor Listesi{% endblock %}
+
+{% block icerik %}
+<header class="sayfa-baslik-wrap flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+    <div>
+        <h1 class="sayfa-baslik-ana serif-baslik vurgu">Doktor Listesi</h1>
+        <p class="sayfa-baslik-alt">Uzmanlik alanlari ve durum</p>
+    </div>
+    <a href="{% url 'doktor_ekle' %}" class="btn btn-birincil shrink-0">Yeni Doktor</a>
+</header>
+
+<div class="yuzey overflow-hidden kart-etkilesim">
+    <div class="tablo-sarmal">
+        <table class="tablo-pro">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>Uzmanlik</th>
+                    <th>E-Posta</th>
+                    <th>Telefon</th>
+                    <th>Durum</th>
+                    <th class="text-right">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doktor in doktorlar %}
+                <tr>
+                    <td class="font-medium text-slate-100">{{ doktor.ad_soyad }}</td>
+                    <td>{{ doktor.uzmanlik_alani }}</td>
+                    <td class="text-slate-400 text-xs">{{ doktor.eposta }}</td>
+                    <td class="text-slate-400">{{ doktor.telefon }}</td>
+                    <td>
+                        {% if doktor.aktif_mi %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">Aktif</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-600/30 text-slate-400 border border-slate-500/25">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right whitespace-nowrap">
+                        <a href="{% url 'doktor_duzenle' doktor.id %}" class="btn-link">Duzenle</a>
+                        <a href="{% url 'doktor_sil' doktor.id %}" class="btn-link btn-link-tehlike ml-2">Sil</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-12 text-slate-500">Doktor bulunmuyor.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

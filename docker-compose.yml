@@ -1,0 +1,18 @@
+services:
+  kalp_yetmezligi_uygulamasi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kalp_yetmezligi_uygulamasi
+    ports:
+      - "8000:8000"
+    environment:
+      - HATA_AYIKLAMA=False
+      - GIZLI_ANAHTAR=degistirilebilir-guvenli-anahtar
+      - IZINLI_SUNUCULAR=localhost,127.0.0.1
+      - CSRF_GUVENILIR_KAYNAKLAR=http://localhost:8000,http://127.0.0.1:8000
+    volumes:
+      - ./Backend:/uygulama/Backend
+      - ./Frontend:/uygulama/Frontend
+      - ./YapayZeka_Modulu:/uygulama/YapayZeka_Modulu
+    restart: unless-stopped

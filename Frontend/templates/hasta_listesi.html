@@ -1,0 +1,52 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Hasta Listesi{% endblock %}
+
+{% block icerik %}
+<header class="sayfa-baslik-wrap flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+    <div>
+        <h1 class="sayfa-baslik-ana serif-baslik vurgu">Hasta Listesi</h1>
+        <p class="sayfa-baslik-alt">Kayitli hastalar ve hizli islemler</p>
+    </div>
+    <a href="{% url 'hasta_ekle' %}" class="btn btn-birincil shrink-0">Yeni Hasta</a>
+</header>
+
+<div class="yuzey overflow-hidden kart-etkilesim">
+    <div class="tablo-sarmal">
+        <table class="tablo-pro">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>TC Kimlik No</th>
+                    <th>Dogum Tarihi</th>
+                    <th>Cinsiyet</th>
+                    <th>Telefon</th>
+                    <th class="text-right">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hasta in hastalar %}
+                <tr>
+                    <td class="font-medium text-slate-100">{{ hasta.ad_soyad }}</td>
+                    <td class="text-slate-400 font-mono text-xs">{{ hasta.tc_kimlik_no }}</td>
+                    <td>{{ hasta.dogum_tarihi }}</td>
+                    <td>
+                        {% if hasta.cinsiyet == "1" or hasta.cinsiyet == "Erkek" %}Erkek{% elif hasta.cinsiyet == "0" or hasta.cinsiyet == "Kadin" %}Kadin{% else %}{{ hasta.cinsiyet }}{% endif %}
+                    </td>
+                    <td class="text-slate-400">{{ hasta.telefon }}</td>
+                    <td class="text-right whitespace-nowrap">
+                        <a href="{% url 'hasta_profil' hasta.id %}" class="btn-link">Profil</a>
+                        <a href="{% url 'hasta_duzenle' hasta.id %}" class="btn-link ml-2">Duzenle</a>
+                        <a href="{% url 'hasta_sil' hasta.id %}" class="btn-link btn-link-tehlike ml-2">Sil</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-12 text-slate-500">Kayitli hasta bulunmuyor.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Ana Sayfa{% endblock %}
+
+{% block icerik %}
+<header class="sayfa-baslik-wrap">
+    <h1 class="sayfa-baslik-ana serif-baslik vurgu">Genel Durum Paneli</h1>
+    <p class="sayfa-baslik-alt">Veritabani ozetleri ve son hareketler — tek bakista klinik akis</p>
+</header>
+
+<div class="istatistik-grid mb-10">
+    <article class="istatistik-kart">
+        <p class="istatistik-etiket">Toplam Hasta</p>
+        <p class="istatistik-deger">{{ dashboard_toplam_hasta }}</p>
+        <p class="istatistik-alt">Hasta tablosundaki kayit sayisi</p>
+    </article>
+    <article class="istatistik-kart">
+        <p class="istatistik-etiket">Toplam Doktor</p>
+        <p class="istatistik-deger">{{ dashboard_toplam_doktor }}</p>
+        <p class="istatistik-alt">Aktif klinik personel kayitlari</p>
+    </article>
+    <article class="istatistik-kart">
+        <p class="istatistik-etiket">Toplam Randevu</p>
+        <p class="istatistik-deger">{{ dashboard_toplam_randevu }}</p>
+        <p class="istatistik-alt">Tum randevu gecmisi</p>
+    </article>
+    <article class="istatistik-kart">
+        <p class="istatistik-etiket">Toplam Tahmin</p>
+        <p class="istatistik-deger">{{ dashboard_toplam_tahmin }}</p>
+        <p class="istatistik-alt">Yapay zeka tahmin sonuclari</p>
+    </article>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+    <section class="yuzey p-6 md:p-8 kart-etkilesim">
+        <h2 class="serif-baslik text-xl vurgu mb-5 pb-3 border-b border-white/5">Son Randevular</h2>
+        <ul class="aktivite-liste">
+            {% for randevu in son_randevular %}
+            <li class="aktivite-item">
+                <span class="text-slate-400 text-xs block mb-0.5">{{ randevu.randevu_tarihi }}</span>
+                {{ randevu.hasta.ad_soyad }} · {{ randevu.doktor.ad_soyad }}
+            </li>
+            {% empty %}
+            <li class="aktivite-bos">Randevu kaydi yok.</li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section class="yuzey p-6 md:p-8 kart-etkilesim">
+        <h2 class="serif-baslik text-xl vurgu mb-5 pb-3 border-b border-white/5">Son Tahminler</h2>
+        <ul class="aktivite-liste">
+            {% for sonuc in son_tahminler %}
+            <li class="aktivite-item">
+                <span class="text-slate-400 text-xs block mb-0.5">{{ sonuc.tahmin_tarihi }}</span>
+                {{ sonuc.tibbi_kayit.hasta.ad_soyad }} — Toplu: <span class="font-semibold {% if sonuc.toplu_tahmin %}text-red-300{% else %}text-emerald-300{% endif %}">{% if sonuc.toplu_tahmin %}High Risk{% else %}Low Risk{% endif %}</span>
+            </li>
+            {% empty %}
+            <li class="aktivite-bos">Tahmin kaydi yok.</li>
+            {% endfor %}
+        </ul>
+    </section>
+</div>
+{% endblock %}

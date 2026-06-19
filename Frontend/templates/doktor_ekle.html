@@ -1,0 +1,18 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Doktor Ekle{% endblock %}
+
+{% block icerik %}
+<div class="max-w-3xl mx-auto">
+    <header class="sayfa-baslik-wrap">
+        <h1 class="sayfa-baslik-ana serif-baslik vurgu">Yeni Doktor Kaydi</h1>
+        <p class="sayfa-baslik-alt">Uzmanlik ve iletisim bilgilerini girin</p>
+    </header>
+    <div class="yuzey p-8 md:p-10 kart-etkilesim">
+        <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            {% csrf_token %}
+            {% include "partials/form_modern.html" with form=form gonder_buton_metni="Doktoru Kaydet" %}
+        </form>
+    </div>
+</div>
+{% endblock %}

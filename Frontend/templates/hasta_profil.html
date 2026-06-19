@@ -1,0 +1,231 @@
+{% extends "temel.html" %}
+
+{% block baslik %}{{ hasta.ad_soyad }} Profili{% endblock %}
+
+{% block icerik %}
+<div class="max-w-6xl mx-auto">
+    <header class="sayfa-baslik-wrap flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+            <h1 class="sayfa-baslik-ana serif-baslik vurgu">{{ hasta.ad_soyad }}</h1>
+            <p class="sayfa-baslik-alt">Hasta profili ve gecmis olcum gecmisi</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'hasta_duzenle' hasta.id %}" class="btn btn-ikincil btn-kucuk">Duzenle</a>
+            <a href="{% url 'tahmin_yap' %}" class="btn btn-birincil btn-kucuk">Yeni Tahmin</a>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="yuzey p-6 kart-etkilesim lg:col-span-1">
+            <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-4">Hasta Bilgileri</h2>
+            <dl class="space-y-3 text-sm">
+                <div class="flex justify-between"><dt class="text-slate-400">TC Kimlik</dt><dd class="font-mono text-slate-100">{{ hasta.tc_kimlik_no }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-400">Dogum Tarihi</dt><dd class="text-slate-100">{{ hasta.dogum_tarihi }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-400">Cinsiyet</dt><dd class="text-slate-100">{% if hasta.cinsiyet == "1" or hasta.cinsiyet == "Erkek" %}Erkek{% elif hasta.cinsiyet == "0" or hasta.cinsiyet == "Kadin" %}Kadin{% else %}{{ hasta.cinsiyet }}{% endif %}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-400">Telefon</dt><dd class="text-slate-100">{{ hasta.telefon|default:"-" }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-400">Kayit Tarihi</dt><dd class="text-slate-100">{{ hasta.olusturma_tarihi|date:"d M Y" }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-400">Toplam Olcum</dt><dd class="text-slate-100 font-semibold" id="toplam-olcum">0</dd></div>
+            </dl>
+        </div>
+
+        <div class="yuzey p-6 kart-etkilesim lg:col-span-2">
+            <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-4">Parametre Secimi</h2>
+            <div class="flex flex-wrap gap-3" id="parametre-secici"></div>
+        </div>
+    </div>
+
+    <div class="yuzey p-6 md:p-8 kart-etkilesim mb-8">
+        <h2 class="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-4">Gecmis Olcum Grafigi</h2>
+        <div class="relative" style="height: 380px;">
+            <canvas id="tarihce-grafigi"></canvas>
+        </div>
+        <p class="text-xs text-slate-500 mt-3 text-center">
+            <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 mr-1"></span> Dusuk Risk
+            <span class="inline-block w-3 h-3 rounded-full bg-red-500 ml-4 mr-1"></span> Yuksek Risk
+        </p>
+    </div>
+
+    <div class="yuzey overflow-hidden kart-etkilesim">
+        <div class="tablo-sarmal">
+            <table class="tablo-pro" id="gecmis-tablosu">
+                <thead>
+                    <tr>
+                        <th>Tarih / Saat</th>
+                        <th>Risk</th>
+                        <th>Olasilik</th>
+                        <th>Ejeksiyon Fraksiyonu</th>
+                        <th>Serum Sodyum</th>
+                        <th>Serum Kreatinin</th>
+                        <th>KF</th>
+                        <th>Trombosit</th>
+                    </tr>
+                </thead>
+                <tbody id="gecmis-tbody">
+                    <tr><td colspan="8" class="text-center py-12 text-slate-500">Yukleniyor...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    var hastaId = {{ hasta.id }};
+
+    var parametreListesi = [
+        { anahtar: "ejeksiyon_fraksiyonu", etiket: "Ejeksiyon Fraksiyonu (%)", renk: "#00d4c8" },
+        { anahtar: "serum_sodyum", etiket: "Serum Sodyum", renk: "#f59e0b" },
+        { anahtar: "serum_kreatinin", etiket: "Serum Kreatinin", renk: "#8b5cf6" },
+        { anahtar: "kreatinin_fosfokinaz", etiket: "KF", renk: "#ec4899" },
+        { anahtar: "trombosit", etiket: "Trombosit", renk: "#06b6d4" },
+        { anahtar: "yas", etiket: "Yas", renk: "#84cc16" },
+        { anahtar: "takip_suresi", etiket: "Takip Suresi (gun)", renk: "#f97316" },
+    ];
+
+    var seciliParametreler = {};
+
+    var seciciKapsayici = document.getElementById("parametre-secici");
+    parametreListesi.forEach(function(p) {
+        seciliParametreler[p.anahtar] = true;
+        var label = document.createElement("label");
+        label.className = "inline-flex items-center gap-2 text-sm text-slate-300 cursor-pointer";
+        var checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = true;
+        checkbox.className = "rounded border-slate-600 text-cyan-500";
+        checkbox.addEventListener("change", function() {
+            seciliParametreler[p.anahtar] = this.checked;
+            grafigiGuncelle();
+        });
+        var span = document.createElement("span");
+        span.className = "inline-block w-2.5 h-2.5 rounded-full mr-1";
+        span.style.backgroundColor = p.renk;
+        label.appendChild(span);
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(p.etiket));
+        seciciKapsayici.appendChild(label);
+    });
+
+    var grafik = null;
+    var tumVeri = [];
+
+    function grafigiGuncelle() {
+        if (!grafik) return;
+
+        var etiketler = tumVeri.map(function(d) {
+            return new Date(d.tarih).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+        });
+
+        var dataSetleri = [];
+        parametreListesi.forEach(function(p) {
+            if (!seciliParametreler[p.anahtar]) return;
+            var degerler = tumVeri.map(function(d) { return d[p.anahtar]; });
+
+            var riskRenkleri = tumVeri.map(function(d) {
+                return d.toplu_tahmin === 1 ? "#ef4444" : "#10b981";
+            });
+
+            dataSetleri.push({
+                label: p.etiket,
+                data: degerler,
+                borderColor: p.renk,
+                backgroundColor: p.renk + "33",
+                pointBackgroundColor: riskRenkleri,
+                pointBorderColor: riskRenkleri,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                tension: 0.2,
+                fill: false,
+            });
+        });
+
+        grafik.data.labels = etiketler;
+        grafik.data.datasets = dataSetleri;
+        grafik.update();
+    }
+
+    fetch("/api/hasta/" + hastaId + "/gecmis/")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            tumVeri = data.kayitlar || [];
+            document.getElementById("toplam-olcum").textContent = tumVeri.length;
+
+            var tbody = document.getElementById("gecmis-tbody");
+            if (tumVeri.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-12 text-slate-500">Henuz olcum kaydi bulunmuyor.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = "";
+            tumVeri.slice().reverse().forEach(function(d) {
+                var tr = document.createElement("tr");
+                var riskSinif = d.toplu_tahmin === 1 ? "text-red-300" : "text-emerald-300";
+                var riskEtiket = d.toplu_tahmin === 1 ? "Yuksek Risk" : "Dusuk Risk";
+                tr.innerHTML =
+                    '<td class="text-slate-300 whitespace-nowrap">' + new Date(d.tarih).toLocaleString("tr-TR") + '</td>' +
+                    '<td class="' + riskSinif + ' font-semibold">' + riskEtiket + '</td>' +
+                    '<td class="font-mono text-cyan-200">' + (d.olasilik !== undefined ? d.olasilik.toFixed(3) : "-") + '</td>' +
+                    '<td>' + d.ejeksiyon_fraksiyonu + '</td>' +
+                    '<td>' + d.serum_sodyum + '</td>' +
+                    '<td>' + d.serum_kreatinin + '</td>' +
+                    '<td>' + d.kreatinin_fosfokinaz + '</td>' +
+                    '<td>' + d.trombosit + '</td>';
+                tbody.appendChild(tr);
+            });
+
+            var ctx = document.getElementById("tarihce-grafigi").getContext("2d");
+            grafik = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                        legend: { labels: { color: "#d8e4f0", font: { size: 11 } } },
+                        tooltip: {
+                            backgroundColor: "rgba(13,20,32,0.92)",
+                            titleColor: "#00d4c8",
+                            bodyColor: "#d8e4f0",
+                            borderColor: "rgba(0,212,200,0.2)",
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    var i = context.dataIndex;
+                                    var d = tumVeri[i];
+                                    var satir = context.dataset.label + ": " + context.parsed.y;
+                                    if (d.toplu_tahmin !== undefined) {
+                                        satir += " (" + (d.toplu_tahmin === 1 ? "Yuksek Risk" : "Dusuk Risk") + ")";
+                                    }
+                                    return satir;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: "#8b9cb0", font: { size: 10 } },
+                            grid: { color: "rgba(255,255,255,0.04)" },
+                        },
+                        y: {
+                            ticks: { color: "#8b9cb0", font: { size: 10 } },
+                            grid: { color: "rgba(255,255,255,0.04)" },
+                            beginAtZero: false,
+                        }
+                    }
+                }
+            });
+            grafigiGuncelle();
+        })
+        .catch(function() {
+            document.getElementById("gecmis-tbody").innerHTML = '<tr><td colspan="8" class="text-center py-12 text-slate-500">Veri yuklenirken hata olustu.</td></tr>';
+        });
+})();
+</script>
+{% endblock %}

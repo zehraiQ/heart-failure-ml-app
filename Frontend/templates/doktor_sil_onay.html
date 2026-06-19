@@ -1,0 +1,23 @@
+{% extends "temel.html" %}
+
+{% block baslik %}Doktor Sil{% endblock %}
+
+{% block icerik %}
+<div class="max-w-lg mx-auto">
+    <header class="sayfa-baslik-wrap">
+        <h1 class="sayfa-baslik-ana serif-baslik vurgu">Doktoru Sil</h1>
+        <p class="sayfa-baslik-alt">Bagli kayitlari kontrol edin</p>
+    </header>
+    <div class="yuzey p-8 md:p-10 kart-etkilesim">
+        <p class="text-lg font-medium text-slate-100 mb-6">{{ doktor.ad_soyad }}</p>
+        <p class="text-slate-400 text-sm leading-relaxed mb-8">
+            Bu doktorun randevu kayitlari da silinebilir. Emin misiniz?
+        </p>
+        <form method="post" class="flex flex-col sm:flex-row gap-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-tehlike btn-genis sm:flex-1">Evet, Sil</button>
+            <a href="{% url 'doktor_listesi' %}" class="btn btn-ikincil btn-genis sm:flex-1 text-center">Vazgec</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

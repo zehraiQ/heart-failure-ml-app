@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block baslik %}Kalp Yetmezligi Tahmin Sistemi{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: "#080c12",
+                        surface: "#0d1420",
+                        accent: "#00d4c8",
+                    },
+                    fontFamily: {
+                        sans: ["Syne", "system-ui", "sans-serif"],
+                        serif: ["Instrument Serif", "Georgia", "serif"],
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="{% static 'css/tema.css' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen cerceve-arka">
+    <div id="toast-kapsayici" aria-live="polite" aria-relevant="additions">
+        {% for message in messages %}
+        <div
+            class="toast {% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
+            role="alert"
+            data-toast
+        >
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="min-h-screen grid grid-cols-1 lg:grid-cols-[280px_1fr]">
+        <aside class="kenar-cam p-6 lg:min-h-screen lg:sticky lg:top-0 lg:self-start">
+            <p class="kenar-alt">Klinik Yonetim</p>
+            <h1 class="kenar-logo serif-baslik vurgu">Kalp Paneli</h1>
+            <nav class="space-y-1 mt-6" aria-label="Ana menu">
+                <a class="blok-link" href="{% url 'ana_sayfa' %}">Ana Sayfa</a>
+                <a class="blok-link" href="{% url 'hasta_ekle' %}">Hasta Ekle</a>
+                <a class="blok-link" href="{% url 'hasta_listesi' %}">Hasta Listesi</a>
+                <a class="blok-link" href="{% url 'doktor_ekle' %}">Doktor Ekle</a>
+                <a class="blok-link" href="{% url 'doktor_listesi' %}">Doktor Listesi</a>
+                <a class="blok-link" href="{% url 'randevu_olustur' %}">Randevu Olustur</a>
+                <a class="blok-link" href="{% url 'randevu_listesi' %}">Randevu Listesi</a>
+                <a class="blok-link" href="{% url 'tahmin_yap' %}">Tahmin Yap</a>
+            </nav>
+            <div class="kenar-sayac">
+                <div>
+                    <span>Hasta</span>
+                    <strong>{{ menu_toplam_hasta|default:0 }}</strong>
+                </div>
+                <div>
+                    <span>Doktor</span>
+                    <strong>{{ menu_toplam_doktor|default:0 }}</strong>
+                </div>
+                <div>
+                    <span>Randevu</span>
+                    <strong>{{ menu_toplam_randevu|default:0 }}</strong>
+                </div>
+                <div>
+                    <span>Tahmin</span>
+                    <strong>{{ menu_toplam_tahmin|default:0 }}</strong>
+                </div>
+            </div>
+        </aside>
+        <main class="ana-icerik">
+            {% block icerik %}{% endblock %}
+        </main>
+    </div>
+    <script>
+        (function () {
+            var toasts = document.querySelectorAll("[data-toast]");
+            toasts.forEach(function (el, i) {
+                setTimeout(function () {
+                    el.style.opacity = "0";
+                    el.style.transform = "translateX(110%)";
+                    el.style.transition = "opacity 0.35s ease, transform 0.35s ease";
+                    setTimeout(function () {
+                        el.remove();
+                    }, 380);
+                }, 5200 + i * 180);
+            });
+        })();
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
